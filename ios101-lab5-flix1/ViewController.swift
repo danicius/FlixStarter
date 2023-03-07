@@ -7,20 +7,70 @@ import UIKit
 import Nuke
 
 // TODO: Add table view data source conformance
-class ViewController: UIViewController {
+class ViewController: UIViewController, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        print("🍏 numberOfRowsInSection called with movies count: \(movies.count)")
+        return movies.count
+        
+    
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        // Create the cell
+//        let cell = UITableViewCell()
+//        
+//        // Get the movie-associated table view row
+//        let movie = movies[indexPath.row]
+//        
+//        // Configure the cell (i.e., update UI elements like labels, image views, etc.)
+//        cell.textLabel?.text = movie.title
+//        
+//        // Return the cell for use in the respective table view row
+        print("🍏 cellForRowAt called for row: \(indexPath.row)")
+        let cell = tableView.dequeueReusableCell(withIdentifier: "MovieCell", for: indexPath) as! MovieCell
+
+           // Get the movie associated table view row
+           let movie = movies[indexPath.row]
+
+           // Configure the cell (i.e., update UI elements like labels, image views, etc.)
+
+           // Unwrap the optional poster path
+           if let posterPath = movie.poster_path,
+
+               // Create a url by appending the poster path to the base url. https://developers.themoviedb.org/3/getting-started/images
+              let imageUrl = URL(string: "https://image.tmdb.org/t/p/w500" + posterPath) {
+
+               // Use the Nuke library's load image function to (async) fetch and load the image from the image URL.
+               Nuke.loadImage(with: imageUrl, into: cell.posterImageView)
+           }
+
+           // Set the text on the labels
+           cell.titleLabel.text = movie.title
+           cell.overviewLabel.text = movie.overview
+
+           // Return the cell for use in the respective table view row
+           return cell
+       
+        
+    }
+    
 
 
     // TODO: Add table view outlet
 
-
+    @IBOutlet weak var tableView: UITableView!
+    
     // TODO: Add property to store fetched movies array
+    // A property to store the movies we fetch.
+    // Providing a default value of an empty array (i.e., `[]`) avoids having to deal with optionals.
+    private var movies: [Movie] = []
 
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // TODO: Assign table view data source
-
+        tableView.dataSource = self
 
         fetchMovies()
     }
@@ -67,10 +117,13 @@ class ViewController: UIViewController {
 
                 // Run any code that will update UI on the main thread.
                 DispatchQueue.main.async { [weak self] in
+                    self?.movies = movies
+                    self?.tableView.reloadData()
+                    print("🍏 Fetched and stored \(movies.count) movies")
 
                     // We have movies! Do something with them!
                     print("✅ SUCCESS!!! Fetched \(movies.count) movies")
-
+                   
                     // Iterate over all movies and print out their details.
                     for movie in movies {
                         print("🍿 MOVIE ------------------")
